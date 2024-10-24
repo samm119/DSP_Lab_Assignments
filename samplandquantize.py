@@ -1,63 +1,44 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import struct
-A = 1.0  
-f = 1.0 
-Fs = 50  
-T = 2    
-q_l = 16
 
-t = np.linspace(0, T, 1000, endpoint=False)
-y = A * np.sin(2 * np.pi * f * t)
-t_s = np.linspace(0, T, int(Fs * T), endpoint=False)
-n = []
-tn=[]
-for i in range(len(t_s) // 5):  
-    n.append(t_s[5*i])
+f = 200
+duration = 0.5
+fs_original = 8000
+fs_resample = 1000
+quantization_levels = 8
 
-t_red=t_s[::5]
+t_original = np.arange(0, duration, 1/fs_original)
+signal = np.sin(2 * np.pi * f * t_original)
 
-y_s= A * np.sin(2 * np.pi * f * t_s)
-y_sn = (y_s - y_s.min()) / (y_s.max() - y_s.min())
-y_q= np.round(y_sn * (q_l- 1)) / (q_l - 1)
-y_q= y_q* (y_s.max() - y_s.min()) + y_s.min()
+t_resample = np.arange(0, duration, 1/fs_resample)
+signal_resample = signal[::fs_original // fs_resample]
 
-print(y_q)
-fi=open("binaryfile.bin","wb+")
-fi.write(y_s.tobytes())
+signal_min = np.min(signal_resample)
+signal_max = np.max(signal_resample)
+signal_normalized = (signal_resample - signal_min) / (signal_max - signal_min)
+signal_quantized = np.round(signal_normalized * (quantization_levels - 1))
+signal_quantized = signal_quantized / (quantization_levels - 1) * (signal_max - signal_min) + signal_min
 
+plt.figure(figsize=(10, 6))
+plt.subplot(3, 1, 1)
+plt.plot(t_original, signal)
+plt.title("Original Signal (8000 Hz sampling rate)")
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude")
 
-fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 10))
-ax1.plot(t, y, label='Continuous Signal')
-ax1.set_title('Continuous Sine Wave')
-ax1.set_xlabel('Time (s)')
-ax1.set_ylabel('Amplitude')
-ax1.legend()
-ax1.grid(True)
+plt.subplot(3, 1, 2)
+plt.plot(t_resample, signal_resample)
+plt.title("Resampled Signal (1000 Hz sampling rate)")
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude")
 
+plt.subplot(3, 1, 3)
+plt.plot(t_resample, signal_quantized)
+plt.title("Quantized Signal (8 levels)")
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude")
 
-ax2.stem(t_s, y_s, linefmt='b', markerfmt='g*', basefmt='r', label='Sampled Signal')
-ax2.set_title('Sampled Sine Wave')
-ax2.set_xlabel('Time (s)')
-ax2.set_ylabel('Amplitude')
-ax2.legend()
-ax2.grid(True)
-
-
-ax3.plot(t, y, label='Continuous Signal')
-ax3.step(t_s, y_q, where='mid',label='Quantized Signal')
-ax3.set_title('Quantized Sine Wave')
-ax3.set_xlabel('Time (s)')
-ax3.set_ylabel('Amplitude')
-ax3.legend()
-ax3.grid(True)
-
-# ax4.stem(t_red, n, linefmt='b', markerfmt='g*', basefmt='r', label='Sampled Signal')
-# ax4.set_title('Resampled Sine Wave')
-# ax4.set_xlabel('Time (s)')
-# ax4.set_ylabel('Amplitude')
-# ax4.legend()
-# ax4.grid(True)
-
-# plt.tight_layout()
+plt.tight_layout()
 plt.show()
+
+print("Quantized Signal Levels:", signal_quantized)
