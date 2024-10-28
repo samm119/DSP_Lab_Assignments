@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-x=[1,2,3,4,5,6]
-coe=[0.2,0.2,0.2,0.2]
-out_sig=np.zeros(len(x))
-out_sig[0]=x[0]
-for i in range(1,len(x)):
-    out_sig[i]+=x[i-1]+x[i]
-print(out_sig)
-plt.plot(out_sig)
+n=int (input("Enter starting point: "))
+n2=int(input("Enter ending point: "))
+l=[]
+for i in range(n,n2+1):
+	y=round(2*np.cos(0.9*np.pi*i)+9*np.sin(0.25*np.pi*i),3)
+	l.append(y)
+print(l)
+t=np.linspace(n,n2,len(l),endpoint=True)
+plt.plot(t,y)
 plt.show()
